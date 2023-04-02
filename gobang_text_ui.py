@@ -1,15 +1,18 @@
 import argparse
 import json
-from datetime import datetime
-from GeneticAlgorithm.GA_AI import Gobang_GA
 import copy
+from datetime import datetime
 
+from GeneticAlgorithm.GA_AI import Gobang_GA
+from Minmax_Search.ai import AI as Minmax_AI
+from MCTS.pure_MCTS import MCTS
+
+import torch
 from alphazero.alpha_zero_mcts import AlphaZeroMCTS
 from alphazero.chess_board import ChessBoard
 from alphazero.policy_value_net import PolicyValueNet
 from alphazero.self_play_dataset import SelfPlayData, SelfPlayDataSet
-import torch
-from MCTS.pure_MCTS import MCTS
+
 
 argparser = argparse.ArgumentParser()
 
@@ -20,7 +23,8 @@ argparser.add_argument(
     help="The size of the board",
 )
 
-# genetic, alphazero, minmax
+# ==== Choose from: genetic, alphazero, minmax, mcts, ====
+# TODO: Support for DQN
 argparser.add_argument(
     "--player1_name",
     type=str,
@@ -41,15 +45,25 @@ argparser.add_argument(
     help="The iteration of model",
 )
 
+argparser.add_argument(
+    "--save_dir",
+    type=str,
+    default="results_size",
+    help="The directory to save the model",
+)
+
 BOARD_SIZE = argparser.parse_args().board_size
 player1_name = argparser.parse_args().player1_name
 player2_name = argparser.parse_args().player2_name
 iteration = argparser.parse_args().iteration
+save_dir = argparser.parse_args().save_dir
 board = [["" for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
 players = ["X", "O"]
 # save actions to a dictionary
 move_history = {"X": [], "O": []}
 
+
+####################
 # init alphazero, not available for self play
 chessboard_alpha = ChessBoard(BOARD_SIZE, 6)
 if player1_name == "alphazero" or player2_name == "alphazero":
@@ -69,6 +83,9 @@ print("Player 1: X, Name: ", player1_name)
 print("Player 2: O, Name: ", player2_name)
 print()
 
+####################
+
+
 def Pure_MCTS_Algorithm(original_board):
     MCTS_board = copy.deepcopy(original_board)
     empty_flag = True
@@ -76,7 +93,7 @@ def Pure_MCTS_Algorithm(original_board):
         for j in range(BOARD_SIZE):
             if MCTS_board[i][j] == 'X':
                 MCTS_board[i][j] = 1
-                empty_flag= False
+                empty_flag = False
             elif MCTS_board[i][j] == 'O':
                 MCTS_board[i][j] = 2
                 empty_flag = False
@@ -84,16 +101,62 @@ def Pure_MCTS_Algorithm(original_board):
                 MCTS_board[i][j] = 0
     if empty_flag == True:
         return int(BOARD_SIZE/2), int(BOARD_SIZE/2)
-    
+
     MCTS_AI = MCTS(MCTS_board,
-                players_in_turn=[1, 2],  # brain is 1
-                n_in_line=5,
-                confidence=1.96,
-                time_limit=10,
-                max_simulation=5,  # should not be too large
-                max_simulation_one_play= 50)
+                   players_in_turn=[1, 2],  # brain is 1
+                   n_in_line=5,
+                   confidence=1.96,
+                   time_limit=10,
+                   max_simulation=5,  # should not be too large
+                   max_simulation_one_play=50)
     move = MCTS_AI.get_action()
     return move
+
+
+def GeneticAlgorithm(original_board):
+    GA_board = copy.deepcopy(original_board)
+    empty_flag = True
+    for i in range(BOARD_SIZE):
+        for j in range(BOARD_SIZE):
+            if GA_board[i][j] == 'X':
+                GA_board[i][j] = 1
+                empty_flag = False
+            elif GA_board[i][j] == 'O':
+                GA_board[i][j] = 2
+                empty_flag = False
+            else:
+                GA_board[i][j] = 0
+    if empty_flag == True:
+        return int(BOARD_SIZE/2), int(BOARD_SIZE/2)
+    GA_AI = Gobang_GA(GA_board, players_in_turn=[1, 2], n_in_line=5,
+                      time_limit=40.0,
+                      DNA_length=2, mutate_rate_limit=0.01,
+                      start_number=800, number_limit=500, sruvival_rate=0.1)
+    move = GA_AI.get_action()
+    return move
+
+
+def MinMaxAlgorithm(original_board):
+    MinMax_board = copy.deepcopy(original_board)
+    empty_flag = True
+    for i in range(BOARD_SIZE):
+        for j in range(BOARD_SIZE):
+            if MinMax_board[i][j] == 'X':
+                MinMax_board[i][j] = 1
+                empty_flag = False
+            elif MinMax_board[i][j] == 'O':
+                MinMax_board[i][j] = 2
+                empty_flag = False
+            else:
+                MinMax_board[i][j] = 0
+    if empty_flag == True:
+        return int(BOARD_SIZE/2), int(BOARD_SIZE/2)
+    MinMax_AI = Minmax_AI(MinMax_board)
+    move, _ = MinMax_AI.get_move()
+    # print('move (row-1, col-1) is  ', move)
+    return move
+
+####################
 
 
 def board_show(ga_board):
@@ -129,7 +192,7 @@ def save_game(move_history, winner, board_size, player1_name, player2_name):
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
 
-    filename = f"p1_{player1_name}_p2_{player2_name}_size_{board_size}_move_history.json"
+    filename = f"{save_dir}_{board_size}/p1_X_{player1_name}_p2_O_{player2_name}_size_{board_size}_history.json"
 
     print('Current time: ', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
@@ -169,6 +232,9 @@ def get_move(current_player_id):
     elif model_name == "mcts":
         action = Pure_MCTS_Algorithm(board)
         return action[0], action[1]
+    elif model_name == "minmax":
+        action = MinMaxAlgorithm(board)
+        return action[0], action[1]
     else:
         while True:
             try:
@@ -198,29 +264,6 @@ def is_won(board, row, col, player):
             else:
                 count = 0
     return False
-
-
-def GeneticAlgorithm(original_board):
-    GA_board = copy.deepcopy(original_board)
-    empty_flag = True
-    for i in range(BOARD_SIZE):
-        for j in range(BOARD_SIZE):
-            if GA_board[i][j] == 'X':
-                GA_board[i][j] = 1
-                empty_flag = False
-            elif GA_board[i][j] == 'O':
-                GA_board[i][j] = 2
-                empty_flag = False
-            else:
-                GA_board[i][j] = 0
-    if empty_flag == True:
-        return int(BOARD_SIZE/2), int(BOARD_SIZE/2)
-    GA_AI = Gobang_GA(GA_board, players_in_turn=[1, 2], n_in_line=5,
-                      time_limit=40.0,
-                      DNA_length=2, mutate_rate_limit=0.01,
-                      start_number=800, number_limit=500, sruvival_rate=0.1)
-    move = GA_AI.get_action()
-    return move
 
 
 print_board(board)

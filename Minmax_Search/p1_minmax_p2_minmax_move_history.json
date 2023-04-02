@@ -6,3 +6,9 @@
 {"move_history": {"minmax": [[5, 5], [5, 3], [5, 6]]}, "winner": null, "first player": "minmax", "timestamp": "2023-04-02 15:45:49"}
 {"move_history": {"minmax": [[5, 5], [5, 3], [5, 6]]}, "winner": null, "first player": "minmax", "timestamp": "2023-04-02 15:46:21"}
 {"move_history": {"minmax": [[5, 5], [2, 4], [5, 4]]}, "winner": null, "first player": "minmax", "timestamp": "2023-04-02 15:52:46"}
+{"move_history": {"minmax": [[5, 5], [2, 2], [4, 5]]}, "winner": null, "first player": "minmax", "timestamp": "2023-04-02 16:54:11"}
+{"move_history": {"minmax": [[2, 3], [4, 5]]}, "winner": null, "first player": "another algorithm", "timestamp": "2023-04-02 16:54:56"}
+{"move_history": {"minmax": [[2, 3], [4, 5]]}, "winner": null, "first player": "another algorithm", "timestamp": "2023-04-02 16:55:05"}
+{"move_history": {"minmax": [[2, 3], [4, 5]]}, "winner": null, "first player": "another algorithm", "timestamp": "2023-04-02 16:56:30"}
+{"move_history": {"minmax": [[2, 3], [4, 5], [1, 1], [4, 3], [8, 8], [5, 4]]}, "winner": null, "first player": "another algorithm", "timestamp": "2023-04-02 16:57:27"}
+{"move_history": {"minmax": [[2, 3], [4, 5]]}, "winner": null, "first player": "another algorithm", "timestamp": "2023-04-02 17:20:45"}

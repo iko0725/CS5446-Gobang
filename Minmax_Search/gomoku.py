@@ -107,7 +107,8 @@ def brain_turn():
             winner = 'opponent: ai'
             move = move_vcx
     print("time used: %.2f s" % (time.time() - myAI.theBoard.startTime))
-    # print('AI move: {}, {}'.format(move[0], move[1])) # not the same as the board index
+    # not the same as the board index
+    print('AI move: {}, {}'.format(move[0]+1, move[1]+1))
     myAI.set(move, 1)
     x, y = move
     pp.do_mymove(x, y)

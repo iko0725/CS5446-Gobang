@@ -1,4 +1,4 @@
-from role import role
+from Minmax_Search.role import role
 import numpy as np
 
 R = role()

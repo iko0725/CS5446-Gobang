@@ -1,4 +1,4 @@
-# CS5446-Gobnag
+# CS5446-Gobang
 
 ## play with alphazero
 

@@ -3,7 +3,12 @@ import json
 from datetime import datetime
 from GeneticAlgorithm import Gobang_GA
 import copy
-    
+
+from alphazero.alpha_zero_mcts import AlphaZeroMCTS
+from alphazero.chess_board import ChessBoard
+from alphazero.policy_value_net import PolicyValueNet
+from alphazero.self_play_dataset import SelfPlayData, SelfPlayDataSet
+import torch
 
 argparser = argparse.ArgumentParser()
 
@@ -27,14 +32,33 @@ argparser.add_argument(
     default="genetic",
     help="The symbol of player 2",
 )
+argparser.add_argument(
+    "--iteration",
+    type=int,
+    default="3000",
+    help="The iteration of model",
+)
 
 BOARD_SIZE = argparser.parse_args().board_size
 player1_name = argparser.parse_args().player1_name
 player2_name = argparser.parse_args().player2_name
+iteration = argparser.parse_args().iteration
 board = [["" for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
 players = ["X", "O"]
 # save actions to a dictionary
 move_history = {"X": [], "O": []}
+
+# init alphazero, not available for self play
+chessboard_alpha = ChessBoard(BOARD_SIZE, 6)
+if player1_name=="alphazero" or player2_name=="alphazero":
+    assert BOARD_SIZE==9 or BOARD_SIZE==15 ,f"invalid board size: {BOARD_SIZE}"
+    assert iteration in [500,1000,1500,2000,2500,3000] ,f"invalid iteration number {iteration}"
+    policy_value_net=torch.load(f"alphazero/board_{BOARD_SIZE}/iter_{iteration}.pth").cuda()
+    c_puct=3
+    n_mcts_iters=500
+    mcts = AlphaZeroMCTS(policy_value_net, c_puct=c_puct, n_iters=n_mcts_iters)
+    mcts.reset_root()
+    chessboard_alpha.clear_board()
 
 print("Gobang Game")
 print("Player 1: X, Name: ", player1_name)
@@ -106,6 +130,11 @@ def get_move(current_player_id):
     if model_name == 'genetic':
         action = GeneticAlgorithm(board)
         return action[0], action[1]
+    elif model_name == "alphazero":
+        action = mcts.get_action(chessboard_alpha)
+        x = (action+BOARD_SIZE+1)//BOARD_SIZE
+        y = (action+BOARD_SIZE+1)%BOARD_SIZE
+        return int(x),int(y)
     else:
         while True:
             try:
@@ -167,7 +196,9 @@ winner = None
 while True:
     row, col = get_move(current_player)
     # print(row, col, current_player)
-
+    loc = row*BOARD_SIZE+col-BOARD_SIZE-1
+    chessboard_alpha.do_action(loc)
+    
     if row is None and col is None:
         print("Exiting the game.")
         break

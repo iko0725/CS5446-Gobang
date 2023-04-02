@@ -1,7 +1,7 @@
 import argparse
 import json
 from datetime import datetime
-from GeneticAlgorithm import Gobang_GA
+from GeneticAlgorithm.GA_AI import Gobang_GA
 import copy
 
 from alphazero.alpha_zero_mcts import AlphaZeroMCTS
@@ -9,6 +9,7 @@ from alphazero.chess_board import ChessBoard
 from alphazero.policy_value_net import PolicyValueNet
 from alphazero.self_play_dataset import SelfPlayData, SelfPlayDataSet
 import torch
+from MCTS.pure_MCTS import MCTS
 
 argparser = argparse.ArgumentParser()
 
@@ -30,7 +31,7 @@ argparser.add_argument(
 argparser.add_argument(
     "--player2_name",
     type=str,
-    default="genetic",
+    default="mcts",
     help="The symbol of player 2",
 )
 argparser.add_argument(
@@ -67,6 +68,32 @@ print("Gobang Game")
 print("Player 1: X, Name: ", player1_name)
 print("Player 2: O, Name: ", player2_name)
 print()
+
+def Pure_MCTS_Algorithm(original_board):
+    MCTS_board = copy.deepcopy(original_board)
+    empty_flag = True
+    for i in range(BOARD_SIZE):
+        for j in range(BOARD_SIZE):
+            if MCTS_board[i][j] == 'X':
+                MCTS_board[i][j] = 1
+                empty_flag= False
+            elif MCTS_board[i][j] == 'O':
+                MCTS_board[i][j] = 2
+                empty_flag = False
+            else:
+                MCTS_board[i][j] = 0
+    if empty_flag == True:
+        return int(BOARD_SIZE/2), int(BOARD_SIZE/2)
+    
+    MCTS_AI = MCTS(MCTS_board,
+                players_in_turn=[1, 2],  # brain is 1
+                n_in_line=5,
+                confidence=1.96,
+                time_limit=10,
+                max_simulation=5,  # should not be too large
+                max_simulation_one_play= 50)
+    move = MCTS_AI.get_action()
+    return move
 
 
 def board_show(ga_board):
@@ -139,6 +166,9 @@ def get_move(current_player_id):
         x = (action+BOARD_SIZE)//BOARD_SIZE-1
         y = (action+BOARD_SIZE) % BOARD_SIZE
         return int(x), int(y)
+    elif model_name == "mcts":
+        action = Pure_MCTS_Algorithm(board)
+        return action[0], action[1]
     else:
         while True:
             try:

@@ -132,8 +132,8 @@ def get_move(current_player_id):
         return action[0], action[1]
     elif model_name == "alphazero":
         action = mcts.get_action(chessboard_alpha)
-        x = (action+BOARD_SIZE+1)//BOARD_SIZE
-        y = (action+BOARD_SIZE+1)%BOARD_SIZE
+        x = (action+BOARD_SIZE)//BOARD_SIZE-1
+        y = (action+BOARD_SIZE)%BOARD_SIZE
         return int(x),int(y)
     else:
         while True:
@@ -196,7 +196,7 @@ winner = None
 while True:
     row, col = get_move(current_player)
     # print(row, col, current_player)
-    loc = row*BOARD_SIZE+col-BOARD_SIZE-1
+    loc = row*BOARD_SIZE+col
     chessboard_alpha.do_action(loc)
     
     if row is None and col is None:

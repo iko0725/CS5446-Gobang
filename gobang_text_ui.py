@@ -235,8 +235,9 @@ while True:
         break
     row, col = get_move(current_player)
     # print(row, col, current_player)
-    loc = row*BOARD_SIZE+col
-    chessboard_alpha.do_action(loc)
+    if player1_name == "alphazero" or player2_name == "alphazero":
+        loc = row*BOARD_SIZE+col
+        chessboard_alpha.do_action(loc)
 
     if row is None and col is None:
         print("Exiting the game.")

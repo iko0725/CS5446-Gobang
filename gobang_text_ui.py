@@ -19,6 +19,7 @@ argparser.add_argument(
     help="The size of the board",
 )
 
+# genetic, alphazero, minmax
 argparser.add_argument(
     "--player1_name",
     type=str,
@@ -50,12 +51,14 @@ move_history = {"X": [], "O": []}
 
 # init alphazero, not available for self play
 chessboard_alpha = ChessBoard(BOARD_SIZE, 6)
-if player1_name=="alphazero" or player2_name=="alphazero":
-    assert BOARD_SIZE==9 or BOARD_SIZE==15 ,f"invalid board size: {BOARD_SIZE}"
-    assert iteration in [500,1000,1500,2000,2500,3000] ,f"invalid iteration number {iteration}"
-    policy_value_net=torch.load(f"alphazero/board_{BOARD_SIZE}/iter_{iteration}.pth").cuda()
-    c_puct=3
-    n_mcts_iters=500
+if player1_name == "alphazero" or player2_name == "alphazero":
+    assert BOARD_SIZE == 9 or BOARD_SIZE == 15, f"invalid board size: {BOARD_SIZE}"
+    assert iteration in [500, 1000, 1500, 2000, 2500,
+                         3000], f"invalid iteration number {iteration}"
+    policy_value_net = torch.load(
+        f"alphazero/board_{BOARD_SIZE}/iter_{iteration}.pth").cuda()
+    c_puct = 3
+    n_mcts_iters = 500
     mcts = AlphaZeroMCTS(policy_value_net, c_puct=c_puct, n_iters=n_mcts_iters)
     mcts.reset_root()
     chessboard_alpha.clear_board()
@@ -64,6 +67,7 @@ print("Gobang Game")
 print("Player 1: X, Name: ", player1_name)
 print("Player 2: O, Name: ", player2_name)
 print()
+
 
 def board_show(ga_board):
     st = '  '
@@ -91,20 +95,20 @@ def board_show(ga_board):
         print(st)
 
 
-
-def save_game(move_history, winner, player1_name, player2_name):
+def save_game(move_history, winner, board_size, player1_name, player2_name):
     game_data = {
         "move_history": move_history,
         "winner": winner,
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
 
-    filename = f"p1_{player1_name}_p2_{player2_name}_move_history.json"
+    filename = f"p1_{player1_name}_p2_{player2_name}_size_{board_size}_move_history.json"
 
     print('Current time: ', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     with open(filename, "a+") as outfile:
         json.dump(game_data, outfile)
+        outfile.write("\n")
     print(f"Game saved to {filename}")
 
 
@@ -123,7 +127,7 @@ def print_board(board):
 
 def get_move(current_player_id):
     if current_player_id == 0:
-        model_name =  argparser.parse_args().player1_name
+        model_name = argparser.parse_args().player1_name
     else:
         model_name = argparser.parse_args().player2_name
 
@@ -133,8 +137,8 @@ def get_move(current_player_id):
     elif model_name == "alphazero":
         action = mcts.get_action(chessboard_alpha)
         x = (action+BOARD_SIZE)//BOARD_SIZE-1
-        y = (action+BOARD_SIZE)%BOARD_SIZE
-        return int(x),int(y)
+        y = (action+BOARD_SIZE) % BOARD_SIZE
+        return int(x), int(y)
     else:
         while True:
             try:
@@ -165,6 +169,7 @@ def is_won(board, row, col, player):
                 count = 0
     return False
 
+
 def GeneticAlgorithm(original_board):
     GA_board = copy.deepcopy(original_board)
     empty_flag = True
@@ -172,7 +177,7 @@ def GeneticAlgorithm(original_board):
         for j in range(BOARD_SIZE):
             if GA_board[i][j] == 'X':
                 GA_board[i][j] = 1
-                empty_flag= False
+                empty_flag = False
             elif GA_board[i][j] == 'O':
                 GA_board[i][j] = 2
                 empty_flag = False
@@ -180,10 +185,10 @@ def GeneticAlgorithm(original_board):
                 GA_board[i][j] = 0
     if empty_flag == True:
         return int(BOARD_SIZE/2), int(BOARD_SIZE/2)
-    GA_AI = Gobang_GA(GA_board, players_in_turn = [1,2], n_in_line=5,
-                 time_limit = 40.0,
-                 DNA_length=2,mutate_rate_limit = 0.01,
-                 start_number=800,number_limit=500,sruvival_rate=0.1)
+    GA_AI = Gobang_GA(GA_board, players_in_turn=[1, 2], n_in_line=5,
+                      time_limit=40.0,
+                      DNA_length=2, mutate_rate_limit=0.01,
+                      start_number=800, number_limit=500, sruvival_rate=0.1)
     move = GA_AI.get_action()
     return move
 
@@ -194,11 +199,15 @@ current_player = 0
 winner = None
 
 while True:
+    # add tie condition
+    if len(move_history['X']) + len(move_history['O']) == (BOARD_SIZE * BOARD_SIZE) - 1 and winner is None:
+        print("Tie!")
+        break
     row, col = get_move(current_player)
     # print(row, col, current_player)
     loc = row*BOARD_SIZE+col
     chessboard_alpha.do_action(loc)
-    
+
     if row is None and col is None:
         print("Exiting the game.")
         break
@@ -218,6 +227,6 @@ while True:
     else:
         print("Invalid move. The cell is already occupied. Please try again.")
 
-save_game(move_history, winner, player1_name, player2_name)
+save_game(move_history, winner, BOARD_SIZE, player1_name, player2_name)
 
 print("Move history:", move_history)

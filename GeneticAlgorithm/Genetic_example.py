@@ -1,4 +1,4 @@
-'''遗传算法AI'''
+'''Genetic Algorithm'''
 import sys 
 sys.path.append('/home/zhanxin/Course/CS5446/Project/Final-Artificial-Intelligence-Project/pisqpipe')
 import pdb
@@ -90,7 +90,7 @@ def board_show():
         print(st)
 
 
-# 判断 player 下了这个点之后有没有成 5
+# check five
 def isFive(board, p, player):
     size = MAX_BOARD
     count = 1

@@ -90,8 +90,13 @@ class ChessBoard:
             * 如果还有分出胜负或者平局，则为 `None`
         """
         # 如果下的棋子不到 9 个，就直接判断游戏还没结束
-        if len(self.state) < 9:
+        if len(self.state) < 7:
             return False, None
+
+        if self.board_len == 7:
+            win_condition = 4
+        else:
+            win_condition = 5
 
         n = self.board_len
         act = self.previous_action
@@ -118,7 +123,7 @@ class ChessBoard:
                     else:
                         flag = False
             # 分出胜负
-            if count >= 5:
+            if count >= win_condition:
                 return True, player
 
         # 平局

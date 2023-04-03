@@ -67,7 +67,7 @@ move_history = {"X": [], "O": []}
 # init alphazero, not available for self play
 chessboard_alpha = ChessBoard(BOARD_SIZE, 6)
 if player1_name == "alphazero" or player2_name == "alphazero":
-    assert BOARD_SIZE == 9 or BOARD_SIZE == 15, f"invalid board size: {BOARD_SIZE}"
+    assert BOARD_SIZE == 7 or BOARD_SIZE == 9 or BOARD_SIZE == 15, f"invalid board size: {BOARD_SIZE}"
     assert iteration in [500, 1000, 1500, 2000, 2500,
                          3000], f"invalid iteration number {iteration}"
     policy_value_net = torch.load(

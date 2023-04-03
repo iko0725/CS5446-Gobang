@@ -290,6 +290,8 @@ for idx in range(TEST_TIMES):
     for player1_name in ['genetic','alpha_zero', 'minmax']:
         for player2_name in ['genetic','alpha_zero', 'minmax']:
             if player1_name != player2_name:
+                board = [["" for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
+                move_history = {"X": [], "O": []}
                 print( f' {player1_name} VS {player2_name}')
                 print_board(board)
                 current_player = 0
@@ -335,6 +337,6 @@ for idx in range(TEST_TIMES):
                 print("Move history:", move_history)
 
 print(win_record)
-with open('./results.txt','a') as f:
-    f.write(win_record)
-f.close()
+with open('./result.json', 'w') as outfile:
+    json_string = json.dumps(win_record)
+    json.dump(json_string, outfile)

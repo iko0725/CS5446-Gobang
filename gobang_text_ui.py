@@ -257,7 +257,7 @@ def is_won(board, row, col, player):
             win_condition = 4
         else:
             win_condition = 5
-        for d in range(-4, 5):
+        for d in range(-3, 4):
             r, c = row + dr * d, col + dc * d
             if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE and board[r][c] == player:
                 count += 1

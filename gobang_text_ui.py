@@ -255,18 +255,28 @@ def is_won(board, row, col, player):
         count = 0
         if BOARD_SIZE==7:
             win_condition = 4
+            for d in range(-3, 4):
+                r, c = row + dr * d, col + dc * d
+                if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE and board[r][c] == player:
+                    count += 1
+
+                    if count == win_condition:
+                        print(f"Player {player} wins!")
+                        return True
+                else:
+                    count = 0
         else:
             win_condition = 5
-        for d in range(-3, 4):
-            r, c = row + dr * d, col + dc * d
-            if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE and board[r][c] == player:
-                count += 1
+            for d in range(-4, 5):
+                r, c = row + dr * d, col + dc * d
+                if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE and board[r][c] == player:
+                    count += 1
 
-                if count == win_condition:
-                    print(f"Player {player} wins!")
-                    return True
-            else:
-                count = 0
+                    if count == win_condition:
+                        print(f"Player {player} wins!")
+                        return True
+                else:
+                    count = 0
     return False
 
 

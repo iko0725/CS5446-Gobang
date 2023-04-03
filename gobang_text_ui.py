@@ -13,7 +13,6 @@ from alphazero.chess_board import ChessBoard
 from alphazero.policy_value_net import PolicyValueNet
 from alphazero.self_play_dataset import SelfPlayData, SelfPlayDataSet
 
-
 argparser = argparse.ArgumentParser()
 
 argparser.add_argument(
@@ -254,11 +253,16 @@ def get_move(current_player_id):
 def is_won(board, row, col, player):
     for dr, dc in ((0, 1), (1, 0), (1, 1), (1, -1)):
         count = 0
+        if BOARD_SIZE==7:
+            win_condition = 4
+        else:
+            win_condition = 5
         for d in range(-4, 5):
             r, c = row + dr * d, col + dc * d
             if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE and board[r][c] == player:
                 count += 1
-                if count == 5:
+
+                if count == win_condition:
                     print(f"Player {player} wins!")
                     return True
             else:

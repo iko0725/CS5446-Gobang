@@ -11,7 +11,7 @@ parser.add_argument('--board-size', default=9,
                     help='board size, assuming the board is a square', type=int)
 parser.add_argument('--first', default='me', type=str,
                     help="who first? 'me' for player, 'ai' for AI")
-parser.add_argument('--player1_name', default='genetic',
+parser.add_argument('--player1_name', default='minmax',
                     type=str, help='player1 name')
 parser.add_argument('--player2_name', default='minmax',
                     type=str, help='player2 name')
@@ -107,7 +107,8 @@ def brain_turn():
             winner = 'opponent: ai'
             move = move_vcx
     print("time used: %.2f s" % (time.time() - myAI.theBoard.startTime))
-    # print('AI move: {}, {}'.format(move[0], move[1])) # not the same as the board index
+    # not the same as the board index
+    print('AI move: {}, {}'.format(move[0]+1, move[1]+1))
     myAI.set(move, 1)
     x, y = move
     pp.do_mymove(x, y)
@@ -148,8 +149,9 @@ def isFree(x, y):
 def brain_my(x, y):
     """my turn: take the step on (x,y)"""
     if isFree(x, y):
+        # print('my move: {}, {}'.format(x, y))
         board[x][y] = 1
-        actions[player2_name].append((x+1, y+1))
+        actions[player1_name].append((x+1, y+1))
     else:
         pp.pipeOut("ERROR my move [{},{}]".format(x+1, y+1))
 
@@ -158,8 +160,9 @@ def brain_opponents(x, y):
     """oppoent's turn: take the step on (x,y)"""
     # print('opponent move: {}, {}'.format(x, y))
     if isFree(x, y):
+        # print('opponent move: {}, {}'.format(x, y))
         board[x][y] = 2
-        actions[player1_name].append((x+1, y+1))
+        actions[player2_name].append((x+1, y+1))
     else:
         pp.pipeOut("ERROR opponents's move [{},{}]".format(x+1, y+1))
 
@@ -245,11 +248,45 @@ def brain_play():
     return 0
 
 
+def brain_play_auto(moves):
+    # actions = []
+    while 1:
+        # print('(if you want to quit, ENTER quit)')
+        # x = input("Your turn, please give a coordinate 'x y':")
+        # print()
+        x = moves
+        # if x == 'quit':
+        #     print('You quit.')
+        #     return None
+        # x = x.split()
+        try:
+            x_coord = int(x[0])-1
+            y_coord = int(x[1])-1
+
+            # x_coord = int(x[0])-2
+            # y_coord = int(x[1])-2
+            # print('x_coord: ', x_coord+1)
+            # print('y_coord: ', y_coord+1)
+        except ValueError or IndexError:
+            print('Invalid input!')
+            continue
+
+        try:
+            # print('x_coord: ', x_coord+1)
+            brain_my(x_coord, y_coord)
+        except ValueError or IndexError:
+            print('Invalid input!')
+            continue
+
+        break
+    # brain_show()
+    return 0
+
+
 def main():
     brain_init()
-    print('Gobang Game')
-    print('You are X, AI is O')
-    # player 1 is Minmax, player 2 is another algorithm
+    print('You are X, Minmax is O')
+    # player 1 is another algorithm, player 2 is Minmax
     print('You are player 1: ', player1_name)
     print('Your opponent player 2: ', player2_name)
 
@@ -257,17 +294,22 @@ def main():
     move = None
     winner = None
     final_winner = None
+    first_player = None
 
     if args.first == 'ai':
+        print('Minmax goes first')
         oppo_move, move, winner = brain_turn()
+        first_player = 'minmax'
         # actions[player2_name].append((move[0]+1, move[1]+1))
     elif args.first == 'me':
+        print('You go first')
+        first_player = 'another algorithm'
         pass
     else:
         raise ValueError("Argument 'first' should be either 'me' or 'ai'!")
     brain_show()
-    # print('oppo move, ', oppo_move)
-    # print('move, ', move)
+
+    # print('actions: ', actions)
 
     while brain_play() is not None:
         oppo_move, move, winner = brain_turn()
@@ -282,9 +324,60 @@ def main():
         #     actions[player2_name].append((move[0]+1, move[1]+1))
         brain_show()
 
-    save_game(actions, player1_name, player2_name, final_winner, args.first)
+    save_game(actions, player1_name, player2_name, final_winner, first_player)
+
+
+def minmax_gobang(player1_name, player2_name,):
+    brain_init()
+    oppo_move = None
+    move = None
+    winner = None
+    final_winner = None
+    first_player = None
+
+    if player1_name == 'minmax':
+        print('Minmax goes first')
+        oppo_move, move, winner = brain_turn()
+        minmax_actions = actions['minmax']
+        minmax_move = minmax_actions[-1]
+        print('minmax_actions', minmax_actions)
+        print('minmax_move', minmax_move)
+        brain_play_auto(minmax_move)
+        # oppo_move, move, winner = brain_turn()
+        # first_player = 'Minmax'
+        # actions[player2_name].append((move[0]+1, move[1]+1))
+
+    elif player2_name == 'minmax':
+        print(f'{player2_name} goes first')
+        # first_player = 'another algorithm'
+
+    else:
+        raise ValueError(
+            "You need to indicate minmax if you want to play against it!")
+    brain_show()
+    print('actions: ', actions)
+    minmax_actions = actions['minmax']
+    minmax_move = minmax_actions.pop(0)
+    print('minmax_move', minmax_move)
+
+    while brain_play_auto(minmax_move) is not None:
+        oppo_move, move, winner = brain_turn()
+
+        if winner is not None:
+            final_winner = winner
+            print('winner', winner)
+
+        # if oppo_move is not None:
+        #     actions[player1_name].append((oppo_move[0]+1, oppo_move[1]+1))
+        # if move is not None:
+        #     actions[player2_name].append((move[0]+1, move[1]+1))
+        brain_show()
+        print('actions: ', actions)
+        minmax_actions = actions['minmax']
+        minmax_move = minmax_actions.pop(0)
 
 
 if __name__ == "__main__":
     pp = PP()
+    # minmax_gobang('minmax', 'another algorithm')
     main()

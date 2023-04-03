@@ -2,11 +2,11 @@
 #     效率提高了10倍左右
 
 import numpy as np
-from role import role
-from zobrist import Zobrist
-from config import Config
-from score import score
-from pointCache import pointCache
+from Minmax_Search.role import role
+from Minmax_Search.zobrist import Zobrist
+from Minmax_Search.config import Config
+from Minmax_Search.score import score
+from Minmax_Search.pointCache import pointCache
 import time
 
 R = role()
@@ -75,7 +75,9 @@ class Board:
         self.oppScore = np.zeros([self.height, self.width])
 
         # 用来控制时间，以免超时
-        self.startTime = None
+        # self.startTime = None
+        # get current time
+        self.startTime = time.time()
         # 用来作为 self.hasNeighbor 的缓存
         self.neighborCache = {}
 
@@ -961,7 +963,7 @@ class Board:
             # 超时判定并且截断搜索
             if time.time() - self.startTime > config.timeLimit:
                 # if config.debug2:
-                #     print('TIME OUT!')
+                # print('TIME OUT!')
                 #     print('Points left: {}'.format(candidates[i:]))
                 break
             # if config.debugAB:

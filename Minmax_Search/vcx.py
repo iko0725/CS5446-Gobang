@@ -1,7 +1,7 @@
 import time
-from score import score
-from config import Config
-from role import role
+from Minmax_Search.score import score
+from Minmax_Search.config import Config
+from Minmax_Search.role import role
 import numpy as np
 "============="
 "=== V C X ==="

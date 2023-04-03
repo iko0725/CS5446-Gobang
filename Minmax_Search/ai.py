@@ -1,8 +1,8 @@
-from role import role
+from Minmax_Search.role import role
 import numpy as np
-from boardHHH import Board
-from config import Config
-from vcx import vcf, vct
+from Minmax_Search.boardHHH import Board
+from Minmax_Search.config import Config
+from Minmax_Search.vcx import vcf, vct
 
 
 R = role()
@@ -55,6 +55,7 @@ class AI:
             for y in range(self.theBoard.width):  # \
                 if self.theBoard.board[x][y] != board[x][y]:
                     # which means the opponent takes move (x, y)
+                    # print('opponent move: ', x+1, y+1)
                     return x, y
         return 0
 

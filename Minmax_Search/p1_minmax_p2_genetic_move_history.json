@@ -1,0 +1,5 @@
+{"move_history": {"minmax": [[4, 4], [4, 6]], "genetic": [[5, 5], [2, 2]]}, "winner": null, "first player": "another algorithm", "timestamp": "2023-04-02 15:20:54"}
+{"move_history": {"minmax": [[4, 5]], "genetic": [[2, 3]]}, "winner": null, "first player": "another algorithm", "timestamp": "2023-04-02 15:25:31"}
+{"move_history": {"minmax": [[4, 4]], "genetic": [[5, 5]]}, "winner": null, "first player": "another algorithm", "timestamp": "2023-04-02 15:31:27"}
+{"move_history": {"minmax": [[4, 5]], "genetic": [[2, 3]]}, "winner": null, "first player": "another algorithm", "timestamp": "2023-04-02 15:35:40"}
+{"move_history": {"minmax": [[4, 4]], "genetic": [[5, 5]]}, "winner": null, "first player": "another algorithm", "timestamp": "2023-04-02 15:38:41"}

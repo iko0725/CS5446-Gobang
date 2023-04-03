@@ -398,7 +398,6 @@ def eval_move(current_board,players,move,n_in_line = 5):
     return tempt1+tempt2, (tempt1 == MAX_POINT or tempt1 == SECOND_MAX)
 
 def eval_individual(board, players,moves,n_in_line = 5):
-    "给个体打分"
     if len(set(moves)) != len(moves):
         return -1
     current_board = copy.deepcopy(board)

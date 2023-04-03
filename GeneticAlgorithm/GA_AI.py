@@ -6,36 +6,36 @@ from collections import Counter
 import time
 
 class Board:
-    '''棋盘类'''
     def __init__(self, input_board, n_in_line=5):
         assert type(n_in_line) == int, "n_in_line para should be INT!"
         self.width = len(input_board[0])
         self.height = len(input_board)
         self.board = copy.deepcopy(input_board)
         self.n_in_line = n_in_line
+         # all available postions
         self.availables = [
             (i, j) for i in range(self.height) for j in range(self.width) if input_board[i][j] == 0
-        ] # 所有可以下的的棋子
+        ]
         self.unavailables = [
             (i, j) for i in range(self.height) for j in range(self.width) if input_board[i][j] != 0
         ]
         # print(self.availables, self.unavailables)
 
     def get_avail(self):
-        '在GA算法里可用的棋子'
+        # avialble points in the board
         x_unfree = list(set([i[0] for i in self.availables]))
         xu = min(x_unfree)
         xb = max(x_unfree) + 1
         y_unfree = list(set([i[1] for i in self.availables]))
         y_unfree.sort()
-        # 确定已有棋子的边界位置
+        # decide the border
         yl = min(y_unfree)
         yr = max(y_unfree) + 1
         xu -= (xu != 0)
         xb += (xb != self.height)
         yl -= (yl != 0)
         yr += (yr != self.width)
-        # 返回可用棋子
+        # return available position
         avail_pos = [
             (i, j) for i in range(xu,xb) for j in range(yl,yr) if self.board[i][j] == 0
         ]
@@ -54,7 +54,7 @@ class Board:
         self.unavailables.append(move)
 
 def mutate(origin_individual, poten_gene):
-    '只替换一个基因'
+    'change on gene'
     individual = [ i for i in origin_individual]
     pos = random.randint(0,len(individual)-1)
     gene = individual[pos]
@@ -64,7 +64,7 @@ def mutate(origin_individual, poten_gene):
     return individual
 
 def crossover(origion_individual1,origion_individual2):
-    '基因互换'
+    'crossover the gene'
     individual1 = [i for i in origion_individual1]
     individual2 = [i for i in origion_individual2]
     assert len(individual1) == len(individual2),"Individual must have same length!"
@@ -76,30 +76,29 @@ def crossover(origion_individual1,origion_individual2):
 
 class Population:
     '''
-    控制population，模拟自然选择
+    control population, natural selsection
     '''
     def __init__(self,select_function,# check_function,
                  potential_gene,DNA_length = 7,
                  mutate_rate_limit = 0.01,
                  start_number = 2000, number_limit = 3500,
                  survival_rate = 0.1):
-        # 个体基因相关
+        # individual gene
         self.DNA_base = potential_gene
         self.DNA_length = DNA_length
-        # self.check_function = check_function # 检查个体是否符合规范
-        # 总体数目相关
+        # self.check_function = check_function 
         self.start_number = start_number
         self.number_limit = number_limit
-        # 产生下一代有关
-        self.mutate_rate_limit = mutate_rate_limit # 最大基因突变率
-        # 自然选择相关
+        # next generation
+        self.mutate_rate_limit = mutate_rate_limit # mutation rate
+        # naturual selection
         self.survival_rate = survival_rate
         self.select_function =select_function
-        self.best_5 = [None for _ in range(5)] # 最优的5代
+        self.best_5 = [None for _ in range(5)] # best five generations
         self.currentgeneration = self.__begin_generation()
 
     def __begin_generation(self):
-        '''初始化第一代'''
+        '''initialze the generation'''
         assert len(self.DNA_base) >= self.DNA_length, "Potential gene is not adequate!"
         generation = []
         for _ in range(self.start_number):
@@ -160,12 +159,12 @@ class Gobang_GA:
                  time_limit = 5.0,
                  DNA_length=7,mutate_rate_limit = 0.01,
                  start_number=2000,number_limit=3500,sruvival_rate=0.1):
-        # 游戏规则相关
+        # gobang rules
         self.current_board = Board(input_board)
         self.player_turn = players_in_turn
         self.n_in_line = n_in_line
         self.time_limit = time_limit
-        # 自然选择相关
+        # natural selection
         self.potential_position = self.current_board.get_avail()
         self.population = Population(self.select_function,#self.check_function,
                                      self.potential_position,DNA_length,
@@ -173,35 +172,32 @@ class Gobang_GA:
                                      sruvival_rate)
 
     def select_function(self,moves,n_in_line=5):
-        '''个体评分函数'''
+        '''grade individual'''
         return eval_individual\
             (self.current_board.board,self.player_turn,moves,n_in_line)
 
     def check_function(self,individual):
-        '''检查个体是否合格'''
+        '''check individual'''
         return len(set(individual)) == len(individual)
 
     def get_action(self):
         begin_time = time.time()
         gene = 0
         while time.time()-begin_time < self.time_limit:
-            self.population.select() # 筛选存活体
+            self.population.select() #select 
 
             # print(gene)
             gene += 1
 
-            best_first,stop = self.population.find_best_firsts() # 这一代的最优
+            best_first,stop = self.population.find_best_firsts() 
             if stop:
-            #     print("Time:%.3f" % (time.time() - begin_time))
                 return best_first
-            if len(set(self.population.best_5)) == 1: # 结果收敛
-                # print("Time:%.3f" % (time.time() - begin_time))
+            if len(set(self.population.best_5)) == 1: # converge
                 return self.population.best_5[0]
             else:
-                self.population.generate_next() # 产生下一代
+                self.population.generate_next()
         best_5 = Counter(self.population.best_5).most_common(5)
         for i in range(len(best_5)):
             if best_5[len(best_5) - i - 1][0] != None:
-                # print("Time:%.3f"%(time.time()-begin_time))
                 return best_5[len(best_5) - i - 1][0]
             

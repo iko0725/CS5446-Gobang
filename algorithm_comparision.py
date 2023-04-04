@@ -2,6 +2,7 @@ import argparse
 import json
 import copy
 from datetime import datetime
+import json
 
 from GeneticAlgorithm.GA_AI import Gobang_GA
 from Minmax_Search.ai import AI as Minmax_AI
@@ -12,6 +13,7 @@ from alphazero.alpha_zero_mcts import AlphaZeroMCTS
 from alphazero.chess_board import ChessBoard
 from alphazero.policy_value_net import PolicyValueNet
 from alphazero.self_play_dataset import SelfPlayData, SelfPlayDataSet
+
 
 argparser = argparse.ArgumentParser()
 
@@ -51,7 +53,11 @@ argparser.add_argument(
     help="The directory to save the model",
 )
 
-BOARD_SIZE = argparser.parse_args().board_size
+BOARD_SIZE = 15
+global board
+global move_history
+global player1_name
+global player2_name
 player1_name = argparser.parse_args().player1_name
 player2_name = argparser.parse_args().player2_name
 iteration = argparser.parse_args().iteration
@@ -100,12 +106,15 @@ def Pure_MCTS_Algorithm(original_board):
                 MCTS_board[i][j] = 0
     if empty_flag == True:
         return int(BOARD_SIZE/2), int(BOARD_SIZE/2)
-
+    if player1_name == 'mcts':
+        current_play_turns = [1,2]
+    else: 
+        current_play_turns = [2,1]
     MCTS_AI = MCTS(MCTS_board,
-                   players_in_turn=[1, 2],  # brain is 1
+                   players_in_turn=current_play_turns,
                    n_in_line=5,
                    confidence=1.96,
-                   time_limit=10,
+                   time_limit=40,
                    max_simulation=5,  # should not be too large
                    max_simulation_one_play=50)
     move = MCTS_AI.get_action()
@@ -127,7 +136,11 @@ def GeneticAlgorithm(original_board):
                 GA_board[i][j] = 0
     if empty_flag == True:
         return int(BOARD_SIZE/2), int(BOARD_SIZE/2)
-    GA_AI = Gobang_GA(GA_board, players_in_turn=[1, 2], n_in_line=5,
+    if player1_name == 'genetic':
+        current_play_turns = [1,2]
+    else: 
+        current_play_turns = [2,1]
+    GA_AI = Gobang_GA(GA_board, players_in_turn= current_play_turns, n_in_line=5,
                       time_limit=40.0,
                       DNA_length=2, mutate_rate_limit=0.01,
                       start_number=800, number_limit=500, sruvival_rate=0.1)
@@ -184,14 +197,14 @@ def board_show(ga_board):
         print(st)
 
 
-def save_game(move_history, winner, board_size, player1_name, player2_name):
+def save_game(move_history, winner, board_size, player1_name, player2_name,index):
     game_data = {
         "move_history": move_history,
         "winner": winner,
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
 
-    filename = f"{save_dir}_{board_size}/p1_X_{player1_name}_p2_O_{player2_name}_size_{board_size}_history.json"
+    filename = f"{save_dir}_{board_size}/{str(index)}_p1_X_{player1_name}_p2_O_{player2_name}_size_{board_size}_history.json"
 
     print('Current time: ', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
@@ -216,9 +229,10 @@ def print_board(board):
 
 def get_move(current_player_id):
     if current_player_id == 0:
-        model_name = argparser.parse_args().player1_name
+        model_name = player1_name
     else:
-        model_name = argparser.parse_args().player2_name
+        model_name = player2_name
+
 
     if model_name == 'genetic':
         action = GeneticAlgorithm(board)
@@ -253,90 +267,96 @@ def get_move(current_player_id):
 def is_won(board, row, col, player):
     for dr, dc in ((0, 1), (1, 0), (1, 1), (1, -1)):
         count = 0
-        if BOARD_SIZE==7:
-            win_condition = 4
-            for d in range(-3, 4):
-                r, c = row + dr * d, col + dc * d
-                if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE and board[r][c] == player:
-                    count += 1
-
-                    if count == win_condition:
-                        print(f"Player {player} wins!")
-                        return True
-                else:
-                    count = 0
-        else:
-            win_condition = 5
-            for d in range(-4, 5):
-                r, c = row + dr * d, col + dc * d
-                if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE and board[r][c] == player:
-                    count += 1
-
-                    if count == win_condition:
-                        print(f"Player {player} wins!")
-                        return True
-                else:
-                    count = 0
+        for d in range(-4, 5):
+            r, c = row + dr * d, col + dc * d
+            if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE and board[r][c] == player:
+                count += 1
+                if count == 5:
+                    print(f"Player {player} wins!")
+                    return True
+            else:
+                count = 0
     return False
 
 
-TEST_TIMES = 10
+print_board(board)
+
+TEST_TIMES = 20
 win_record = {}
-for player1_name in ['genetic','alpha_zero', 'minmax']:
-    for player2_name in ['genetic','alpha_zero', 'minmax']:
+for player1_name in ['genetic','alphazero', 'minmax', 'mcts']:
+    for player2_name in ['genetic','alphazero', 'minmax','mcts']:
         win_record[player1_name+'_'+player2_name] = []
 
 for idx in range(TEST_TIMES):
-    for player1_name in ['genetic','alpha_zero', 'minmax']:
-        for player2_name in ['genetic','alpha_zero', 'minmax']:
-            if player1_name != player2_name:
-                board = [["" for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
-                move_history = {"X": [], "O": []}
-                print( f' {player1_name} VS {player2_name}')
-                print_board(board)
-                current_player = 0
-                winner = None
-                step = 0
-                while True:
-                    # add tie condition
-                    if len(move_history['X']) + len(move_history['O']) == (BOARD_SIZE * BOARD_SIZE) - 1 and winner is None:
-                        print("Tie!")
-                        break
-                    row, col = get_move(current_player)
-                    step += 1
-                    # print(row, col, current_player)
+    for player1_name in ['genetic','alphazero', 'minmax','mcts']:
+        for player2_name in ['genetic','alphazero', 'minmax', 'mcts']:
+            try:
+                if player1_name != player2_name:
+                    board = [["" for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
+                    move_history = {"X": [], "O": []}
+                    print( f' {player1_name} VS {player2_name}')
+                    print_board(board)
+
+                    chessboard_alpha = ChessBoard(BOARD_SIZE, 6)
                     if player1_name == "alphazero" or player2_name == "alphazero":
-                        loc = row*BOARD_SIZE+col
-                        chessboard_alpha.do_action(loc)
+                        assert BOARD_SIZE == 7 or BOARD_SIZE == 9 or BOARD_SIZE == 15, f"invalid board size: {BOARD_SIZE}"
+                        assert iteration in [500, 1000, 1500, 2000, 2500,
+                                            3000], f"invalid iteration number {iteration}"
+                        policy_value_net = torch.load(
+                            f"alphazero/board_{BOARD_SIZE}/iter_{iteration}.pth").cuda()
+                        c_puct = 3
+                        n_mcts_iters = 500
+                        mcts = AlphaZeroMCTS(policy_value_net, c_puct=c_puct, n_iters=n_mcts_iters)
+                        mcts.reset_root()
+                        chessboard_alpha.clear_board()
 
-                    if row is None and col is None:
-                        print("Exiting the game.")
-                        break
+                    current_player = 0
+                    winner = None
+                    step = 0
+                    while True:
+                        # add tie condition
+                        if len(move_history['X']) + len(move_history['O']) == (BOARD_SIZE * BOARD_SIZE) - 1 and winner is None:
+                            print("Tie!")
+                            win_record[player1_name+'_'+player2_name].append(( -1, step))
+                            break
+                        row, col = get_move(current_player)
+                        step += 1
+                        # print(row, col, current_player)
+                        if player1_name == "alphazero" or player2_name == "alphazero":
+                            loc = row*BOARD_SIZE+col
+                            chessboard_alpha.do_action(loc)
 
-                    if not board[row][col]:
-                        board[row][col] = players[current_player]
-                        move_history[players[current_player]].append((row + 1, col + 1))
-                        print_board(board)
-
-                        if is_won(board, row, col, players[current_player]):
-                            winner = players[current_player]
-                            print(f"Player {current_player + 1} ({players[current_player]}) wins!")
-                            win_record[player1_name+'_'+player2_name].append(( current_player, step))
+                        if row is None and col is None:
+                            print("Exiting the game.")
                             break
 
-                        current_player = 1 - current_player
+                        if not board[row][col]:
+                            board[row][col] = players[current_player]
+                            move_history[players[current_player]].append((row + 1, col + 1))
+                            print_board(board)
+
+                            if is_won(board, row, col, players[current_player]):
+                                winner = players[current_player]
+                                print(f"Player {current_player + 1} ({players[current_player]}) wins!")
+                                win_record[player1_name+'_'+player2_name].append(( current_player, step))
+                                break
+
+                            current_player = 1 - current_player
+                        else:
+                            print("Invalid move. The cell is already occupied. Please try again.")
+
+                    if player1_name == 'alphazero':
+                        save_game(move_history, winner, BOARD_SIZE, player1_name + str(iteration), player2_name, idx)
+                    elif player2_name == 'alphazero':
+                        save_game(move_history, winner, BOARD_SIZE, player1_name, player2_name + str(iteration), idx)
                     else:
-                        print("Invalid move. The cell is already occupied. Please try again.")
+                        save_game(move_history, winner, BOARD_SIZE, player1_name, player2_name, idx)
 
-                if player1_name == 'alphazero':
-                    player1_name = player1_name + str(iteration)
-                elif player2_name == 'alphazero':
-                    player2_name = player2_name + str(iteration)
-                save_game(move_history, winner, BOARD_SIZE, player1_name, player2_name, idx)
-
-                print("Move history:", move_history)
-
+                    print("Move history:", move_history)
+            except:
+                print(player1_name, player2_name)
+                win_record[player1_name+'_'+player2_name].append(('bugs', step))
 print(win_record)
-with open('./result.json', 'w') as outfile:
+with open(f'{save_dir}_{BOARD_SIZE}/result.json', 'a') as outfile:
     json_string = json.dumps(win_record)
     json.dump(json_string, outfile)

@@ -35,11 +35,7 @@ def play(model):
 
         # can move
         actions = np.array(np.where(board == 0))
-        # as feature vectors
-        # features = main.getFeatures(board, actions)
-
-        # set algorithm here.
-        # r = np.argmax(model.get(features)[:, 0])
+    
         r = main.getMove(board, model, True, 2)
 
         action = actions[:, r]

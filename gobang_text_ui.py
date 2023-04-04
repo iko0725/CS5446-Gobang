@@ -12,6 +12,9 @@ from alphazero.alpha_zero_mcts import AlphaZeroMCTS
 from alphazero.chess_board import ChessBoard
 from alphazero.policy_value_net import PolicyValueNet
 from alphazero.self_play_dataset import SelfPlayData, SelfPlayDataSet
+from main import *
+from evaluation import *
+from DQN.test import *
 
 argparser = argparse.ArgumentParser()
 
@@ -66,7 +69,7 @@ move_history = {"X": [], "O": []}
 # init alphazero, not available for self play
 chessboard_alpha = ChessBoard(BOARD_SIZE, 6)
 if player1_name == "alphazero" or player2_name == "alphazero":
-    assert BOARD_SIZE == 7 or BOARD_SIZE == 9 or BOARD_SIZE == 15, f"invalid board size: {BOARD_SIZE}"
+    assert BOARD_SIZE == 9 or BOARD_SIZE == 15, f"invalid board size: {BOARD_SIZE}"
     assert iteration in [500, 1000, 1500, 2000, 2500,
                          3000], f"invalid iteration number {iteration}"
     policy_value_net = torch.load(
@@ -83,6 +86,16 @@ print("Player 2: O, Name: ", player2_name)
 print()
 
 ####################
+# init alphazero, not available for self play
+
+if player1_name == "dqn" or player2_name == "dqn":
+    assert BOARD_SIZE == 9 or BOARD_SIZE == 15, f"invalid board size: {BOARD_SIZE}"
+    assert iteration in [500, 1000, 1500, 2000, 2500,
+                         3000], f"invalid iteration number {iteration}"
+    model = main.MyChain()
+    N=BOARD_SIZE
+    serializers.load_npz(f'./DQN/model_{BOARD_SIZE}/{iteration}.model', model)
+    dqn_board = np.zeros((N, N), dtype=np.int8)
 
 
 def Pure_MCTS_Algorithm(original_board):
@@ -155,9 +168,6 @@ def MinMaxAlgorithm(original_board):
     # print('move (row-1, col-1) is  ', move)
     return move
 
-####################
-
-
 def board_show(ga_board):
     st = '  '
     for i in range(len(ga_board[0])):
@@ -202,6 +212,7 @@ def save_game(move_history, winner, board_size, player1_name, player2_name):
 
 
 def print_board(board):
+
     print("  ", end="")
     for i in range(len(board)):
         print(f"{i + 1:2}", end=" ")
@@ -228,6 +239,11 @@ def get_move(current_player_id):
         x = (action+BOARD_SIZE)//BOARD_SIZE-1
         y = (action+BOARD_SIZE) % BOARD_SIZE
         return int(x), int(y)
+    elif model_name == "dqn":
+        actions = np.array(np.where(dqn_board == 0))
+        r = main.getMove(dqn_board, model, True, 2)
+        action = actions[:, r]
+        return action[0], action[1]
     elif model_name == "mcts":
         action = Pure_MCTS_Algorithm(board)
         return action[0], action[1]
@@ -253,30 +269,15 @@ def get_move(current_player_id):
 def is_won(board, row, col, player):
     for dr, dc in ((0, 1), (1, 0), (1, 1), (1, -1)):
         count = 0
-        if BOARD_SIZE==7:
-            win_condition = 4
-            for d in range(-3, 4):
-                r, c = row + dr * d, col + dc * d
-                if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE and board[r][c] == player:
-                    count += 1
-
-                    if count == win_condition:
-                        print(f"Player {player} wins!")
-                        return True
-                else:
-                    count = 0
-        else:
-            win_condition = 5
-            for d in range(-4, 5):
-                r, c = row + dr * d, col + dc * d
-                if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE and board[r][c] == player:
-                    count += 1
-
-                    if count == win_condition:
-                        print(f"Player {player} wins!")
-                        return True
-                else:
-                    count = 0
+        for d in range(-4, 5):
+            r, c = row + dr * d, col + dc * d
+            if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE and board[r][c] == player:
+                count += 1
+                if count == 5:
+                    print(f"Player {player} wins!")
+                    return True
+            else:
+                count = 0
     return False
 
 
@@ -295,7 +296,8 @@ while True:
     if player1_name == "alphazero" or player2_name == "alphazero":
         loc = row*BOARD_SIZE+col
         chessboard_alpha.do_action(loc)
-
+    if player1_name == "dqn" or player2_name == "dqn":
+            dqn_board[row, col] = 1
     if row is None and col is None:
         print("Exiting the game.")
         break

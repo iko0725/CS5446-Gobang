@@ -13,7 +13,9 @@ from alphazero.alpha_zero_mcts import AlphaZeroMCTS
 from alphazero.chess_board import ChessBoard
 from alphazero.policy_value_net import PolicyValueNet
 from alphazero.self_play_dataset import SelfPlayData, SelfPlayDataSet
-
+from main import *
+from evaluation import *
+from DQN.test import *
 
 argparser = argparse.ArgumentParser()
 
@@ -53,7 +55,7 @@ argparser.add_argument(
     help="The directory to save the model",
 )
 
-BOARD_SIZE = 15
+BOARD_SIZE = 9
 global board
 global move_history
 global player1_name
@@ -89,7 +91,14 @@ print("Player 2: O, Name: ", player2_name)
 print()
 
 ####################
-
+if player1_name == "dqn" or player2_name == "dqn":
+    assert BOARD_SIZE == 7 or BOARD_SIZE == 9 or BOARD_SIZE == 15, f"invalid board size: {BOARD_SIZE}"
+    assert iteration in [500, 1000, 1500, 2000, 2500,
+                         3000], f"invalid iteration number {iteration}"
+    model = main.MyChain()
+    N=BOARD_SIZE
+    serializers.load_npz(f'./DQN/model_{BOARD_SIZE}/{iteration}.model', model)
+    dqn_board = np.zeros((N, N), dtype=np.int8)
 
 def Pure_MCTS_Algorithm(original_board):
     MCTS_board = copy.deepcopy(original_board)
@@ -242,6 +251,11 @@ def get_move(current_player_id):
         x = (action+BOARD_SIZE)//BOARD_SIZE-1
         y = (action+BOARD_SIZE) % BOARD_SIZE
         return int(x), int(y)
+    elif model_name == "dqn":
+        actions = np.array(np.where(dqn_board == 0))
+        r = main.getMove(dqn_board, model, True, 2)
+        action = actions[:, r]
+        return int(action[0]), int(action[1])
     elif model_name == "mcts":
         action = Pure_MCTS_Algorithm(board)
         return action[0], action[1]
@@ -284,12 +298,12 @@ print_board(board)
 TEST_TIMES = 20
 win_record = {}
 for player1_name in ['genetic','alphazero', 'minmax', 'mcts']:
-    for player2_name in ['genetic','alphazero', 'minmax','mcts']:
+    for player2_name in ['dqn']:
         win_record[player1_name+'_'+player2_name] = []
 
 for idx in range(TEST_TIMES):
     for player1_name in ['genetic','alphazero', 'minmax','mcts']:
-        for player2_name in ['genetic','alphazero', 'minmax', 'mcts']:
+        for player2_name in ['dqn']:
             try:
                 if player1_name != player2_name:
                     board = [["" for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
@@ -309,6 +323,14 @@ for idx in range(TEST_TIMES):
                         mcts = AlphaZeroMCTS(policy_value_net, c_puct=c_puct, n_iters=n_mcts_iters)
                         mcts.reset_root()
                         chessboard_alpha.clear_board()
+                    if player1_name == "dqn" or player2_name == "dqn":
+                        assert BOARD_SIZE == 9 or BOARD_SIZE == 15, f"invalid board size: {BOARD_SIZE}"
+                        assert iteration in [500, 1000, 1500, 2000, 2500,
+                                            3000], f"invalid iteration number {iteration}"
+                        model = main.MyChain()
+                        N=BOARD_SIZE
+                        serializers.load_npz(f'./DQN/model_{BOARD_SIZE}/{iteration}.model', model)
+                        dqn_board = np.zeros((N, N), dtype=np.int8)
 
                     current_player = 0
                     winner = None
@@ -325,6 +347,8 @@ for idx in range(TEST_TIMES):
                         if player1_name == "alphazero" or player2_name == "alphazero":
                             loc = row*BOARD_SIZE+col
                             chessboard_alpha.do_action(loc)
+                        if player1_name == "dqn" or player2_name == "dqn":
+                            dqn_board[row, col] = 1
 
                         if row is None and col is None:
                             print("Exiting the game.")
@@ -345,9 +369,9 @@ for idx in range(TEST_TIMES):
                         else:
                             print("Invalid move. The cell is already occupied. Please try again.")
 
-                    if player1_name == 'alphazero':
+                    if player1_name == 'alphazero' or 'dqn':
                         save_game(move_history, winner, BOARD_SIZE, player1_name + str(iteration), player2_name, idx)
-                    elif player2_name == 'alphazero':
+                    elif player2_name == 'alphazero' or 'dqn':
                         save_game(move_history, winner, BOARD_SIZE, player1_name, player2_name + str(iteration), idx)
                     else:
                         save_game(move_history, winner, BOARD_SIZE, player1_name, player2_name, idx)
@@ -355,8 +379,8 @@ for idx in range(TEST_TIMES):
                     print("Move history:", move_history)
             except:
                 print(player1_name, player2_name)
-                win_record[player1_name+'_'+player2_name].append(('bugs', step))
+                #win_record[player1_name+'_'+player2_name].append(('bugs', step))
 print(win_record)
-with open(f'{save_dir}_{BOARD_SIZE}/result.json', 'a') as outfile:
+with open(f'{save_dir}_{BOARD_SIZE}_3000/result.json', 'a') as outfile:
     json_string = json.dumps(win_record)
     json.dump(json_string, outfile)

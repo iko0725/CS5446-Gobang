@@ -243,7 +243,7 @@ def get_move(current_player_id):
         actions = np.array(np.where(dqn_board == 0))
         r = main.getMove(dqn_board, model, True, 2)
         action = actions[:, r]
-        return action[0], action[1]
+        return int(action[0]), int(action[1])
     elif model_name == "mcts":
         action = Pure_MCTS_Algorithm(board)
         return action[0], action[1]

@@ -1,4 +1,4 @@
-# CS5446-Gobang
+# Mastering the Game of Gobang from scratch
 
 ## play with alphazero
 

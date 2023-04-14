@@ -1,6 +1,10 @@
 # Mastering the Game of Gobang from Scratch
+<!-- ![Gobang game with White player wins](imgs/training_effect.png) -->
+<div align="center">
+<img src="imgs/training_effect.png" width = "300" height="300" alt="Gobang game with white player winning" align=center />
+</div>
 
-In this work, we present a comprehensive comparison and analysis of different reinforcement learning algorithms in the game of Gobang. We consider various algorithms, including Minimax Algorithm with Alpha-beata pruning (Minimax), Monte Carlo Tree Search (MCTS), Genetic Algorithm, Deep Q-Network (DQN), and AlphaZero. 
+**Gobang**, also known as Five in a Row, is a popular board game played between two players, whose goal is to align five consecutive stones of the same color on a grid. In this work, we present a comprehensive comparison and analysis of different reinforcement learning algorithms in the game of Gobang. We consider various algorithms, including Minimax Algorithm with Alpha-beata pruning (Minimax), Monte Carlo Tree Search (MCTS), Genetic Algorithm, Deep Q-Network (DQN), and AlphaZero. 
 
 
 ## RUN CODE
@@ -26,6 +30,20 @@ python gobang_text_ui.py --board_size 9 --player1_name minimax --player2_name ge
 * `--iteration`: The training epoch for alphazero algorithm, default is 3000. We support 500, 1000, 1500, 2000, 2500, 3000. If you dont use AlphaZero in the game, ignore this argument.
 
 * `--save_dir`: This directory is used to save moves history and winnter informaiton for both player1 and player2. The example file is: p1_alphazero_p2_genetic_move_history.json.
+
+
+## Results
+Results on board size $9\times9$ (five-in-a-row).
+<div align="center">
+<img src="imgs/board_size_9.jpg" width = "500" height="400" alt="Results on board size 9x9" align=center />
+</div>
+<!-- ![Results on board size 9x9](imgs/board_size_9.jpg =100x) -->
+
+Time cost per move
+<div align="center">
+<img src="imgs/time_cost_per_move.png" width = "500" height="400" alt="Time cost per move" align=center />
+</div>
+<!-- ![Time cost per move](imgs/time_cost_per_move.png) -->
 
 
 ## Reference Code

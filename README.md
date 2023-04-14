@@ -31,7 +31,7 @@ python gobang_text_ui.py --board_size 9 --player1_name minimax --player2_name ge
 ## Reference Code
 1. https://github.com/Explorerhpx/Final-Artificial-Intelligence-Project
 2. https://github.com/kktsubota/gobang
-3. xxxxx alphazero link
+3. https://github.com/zhiyiYo/Alpha-Gobang-Zero
 
 ## Reference Paper
 1. Junru Wang and Lan Huang, "Evolving Gomoku solver by genetic algorithm," 2014 IEEE Workshop on Advanced Research and Technology in Industry Applications (WARTIA), Ottawa, ON, Canada, 2014, pp. 1064-1067, doi: 10.1109/WARTIA.2014.6976460.

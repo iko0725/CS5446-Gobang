@@ -16,7 +16,7 @@ python gobang_text_ui.py --board_size --player1_name --player2_name --iteration 
 
 * player2_name: The algorithm who play second in the Gobang game. We surpport Genetic Algorithm (genetic), Marte Corlo Tree Search (mcts), Minimax Algorithm with Alpha-beta prunning (minmax), Deep Q-Network (dqn) and AlphaZero (alphazero).
 
-* iteration: The training epoch for alphazero algorithm, default is 3000. We support 500, 1000, 1500, 2000, 2500, 3000. If you dont use AlphaZero in the game, ignore the augument.
+* iteration: The training epoch for alphazero algorithm, default is 3000. We support 500, 1000, 1500, 2000, 2500, 3000. If you dont use AlphaZero in the game, ignore this argument.
 
 * save_dir: This directory is used to save moves history and winnter informaiton for both player1 and player2. The example file is: p1_alphazero_p2_genetic_move_history.json.
 

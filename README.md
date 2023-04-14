@@ -4,7 +4,7 @@ In this work, we present a comprehensive comparison and analysis of different re
 
 
 ## RUN CODE
-We have implemented a text-based user interface and integrated all the algorithms to enable automatic gameplay among them.
+We have implemented a text-based user interface and integrated all the algorithms to enable automatic gameplay among them. If you want to play with these algorithm, set player1_name or player2_name as human.
 
 ~~~~
 python gobang_text_ui.py --board_size --player1_name --player2_name --iteration --save_dir

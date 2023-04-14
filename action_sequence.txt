@@ -1,2 +1,0 @@
-Player1: 5,5
-Player2: 6,4

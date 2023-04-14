@@ -10,7 +10,7 @@ python gobang_text_ui.py --board_size --player1_name --player2_name --iteration 
 
 **Example**: python gobang_text_ui.py --board_size 9 --player1_name minimax --player2_name genetic --save_dir ./results
 
-*board_size*: We surpport board size 7 (4-in-a-row) and board size 9, 15 (five-in-a-row). If you input board size 7, the chess game automatically start with 4-in-a-row chess rules. 
+*board_size*: We surpport board size 7 (4-in-a-row) and board size 9, 15 (five-in-a-row). If you input board size 7, the chess game automatically start with 4-in-a-row chess rules and models. 
 
 *player1_name*: The algorithm who play first in the Gobang game. We surpport Genetic Algorithm (genetic), Marte Corlo Tree Search (mcts), Minimax Algorithm with Alpha-beta prunning (minmax), Deep Q-Network (dqn) and AlphaZero (alphazero).
 
